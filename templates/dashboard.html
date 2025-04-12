@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </h1>
+        <p class="lead text-muted">Monitor and manage your filtered Facebook notifications</p>
+    </div>
+</div>
+
+{% if not connected %}
+<!-- Facebook Connection Required -->
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-body text-center p-5">
+                <i class="fab fa-facebook fa-5x text-primary mb-4"></i>
+                <h2 class="card-title">Connect to Facebook</h2>
+                <p class="card-text mb-4">To start filtering your notifications, you need to connect your Facebook account first.</p>
+                <a href="{{ url_for('connect_facebook') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plug me-2"></i>Connect Facebook Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Notification Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 bg-primary bg-opacity-25 shadow h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-bell fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title">Total Notifications</h5>
+                        <h3 class="card-text">{{ important_notifications|length + other_notifications|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 bg-success bg-opacity-25 shadow h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-star fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title">Important</h5>
+                        <h3 class="card-text">{{ important_notifications|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 bg-info bg-opacity-25 shadow h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-list fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title">Other</h5>
+                        <h3 class="card-text">{{ other_notifications|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Important Notifications -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-success bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-star me-2"></i>Important Notifications
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                {% if important_notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in important_notifications %}
+                    <a href="{{ notification.link }}" target="_blank" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ notification.title }}</h5>
+                            <small class="text-muted">{{ notification.created_time.strftime('%b %d, %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message }}</p>
+                        <small class="text-muted">
+                            <span class="badge bg-secondary">{{ notification.notification_type }}</span>
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <p class="text-muted mb-0">No important notifications found.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if important_notifications and important_notifications|length >= 10 %}
+            <div class="card-footer text-center">
+                <a href="#" class="btn btn-sm btn-outline-success">View All Important Notifications</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Other Notifications -->
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-info bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Other Notifications
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                {% if other_notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in other_notifications %}
+                    <a href="{{ notification.link }}" target="_blank" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ notification.title }}</h5>
+                            <small class="text-muted">{{ notification.created_time.strftime('%b %d, %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message }}</p>
+                        <small class="text-muted">
+                            <span class="badge bg-secondary">{{ notification.notification_type }}</span>
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <p class="text-muted mb-0">No other notifications found.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if other_notifications and other_notifications|length >= 10 %}
+            <div class="card-footer text-center">
+                <a href="#" class="btn btn-sm btn-outline-info">View All Other Notifications</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Refresh Button -->
+<div class="row mt-4">
+    <div class="col text-center">
+        <form action="{{ url_for('refresh_notifications') }}" method="post">
+            <button type="submit" class="btn btn-lg btn-primary">
+                <i class="fas fa-sync-alt me-2"></i>Refresh Notifications
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

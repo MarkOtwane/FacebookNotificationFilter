@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="fas fa-cogs me-2"></i>Filter Rules
+        </h1>
+        <p class="lead text-muted">Create and manage your notification filtering rules</p>
+    </div>
+</div>
+
+<!-- Add New Rule Card -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Rule
+                </h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('rules') }}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="rule_type" class="form-label">Notification Type</label>
+                            <select class="form-select" id="rule_type" name="rule_type" required>
+                                <option value="" selected disabled>Select a type...</option>
+                                <option value="message">Messages</option>
+                                <option value="mention">Mentions</option>
+                                <option value="tag">Tags</option>
+                                <option value="comment">Comments</option>
+                                <option value="like">Likes</option>
+                                <option value="friend_request">Friend Requests</option>
+                                <option value="group_activity">Group Activity</option>
+                                <option value="group_invite">Group Invites</option>
+                                <option value="event_update">Event Updates</option>
+                                <option value="event_invite">Event Invites</option>
+                                <option value="birthday">Birthdays</option>
+                                <option value="memory">Memories</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="content_filter" class="form-label">Content Filter <small class="text-muted">(Optional)</small></label>
+                            <input type="text" class="form-control" id="content_filter" name="content_filter" placeholder="e.g., work, family">
+                            <div class="form-text">Keywords that must be in the notification</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="importance" class="form-label">Importance</label>
+                            <select class="form-select" id="importance" name="importance" required>
+                                <option value="important">Important</option>
+                                <option value="normal" selected>Normal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Rule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Existing Rules Card -->
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-info bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-list-alt me-2"></i>Your Filter Rules
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                {% if rules %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Notification Type</th>
+                                <th>Content Filter</th>
+                                <th>Importance</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rule in rules %}
+                            <tr>
+                                <td>
+                                    <span class="badge rounded-pill bg-secondary">{{ rule.notification_type }}</span>
+                                </td>
+                                <td>
+                                    {% if rule.content_filter %}
+                                    <code>"{{ rule.content_filter }}"</code>
+                                    {% else %}
+                                    <span class="text-muted">Any</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rule.importance == 'important' %}
+                                    <span class="badge rounded-pill bg-success">Important</span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-info">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ rule.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <form action="{{ url_for('delete_rule', rule_id=rule.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this rule?');">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <p class="text-muted mb-0">You don't have any filter rules yet. Create one to start organizing your notifications!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rules Guide Card -->
+<div class="row mt-4">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-secondary bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Rules Guide
+                </h4>
+            </div>
+            <div class="card-body">
+                <h5>How rules work:</h5>
+                <ul>
+                    <li><strong>Notification Type</strong>: Categorizes the notification by its source (messages, likes, etc.)</li>
+                    <li><strong>Content Filter</strong>: Optional keyword filter that checks if any of the words appear in the notification text</li>
+                    <li><strong>Importance</strong>: Determines if a notification is labeled as "important" or "normal"</li>
+                </ul>
+                
+                <h5>Rules processing order:</h5>
+                <ol>
+                    <li>Rules are applied in order from most specific to least specific</li>
+                    <li>Content filter rules take precedence over type-only rules</li>
+                    <li>If no rules match, the notification is marked as "normal" by default</li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Create rules for notification types you want to prioritize as "important" and leave the rest as "normal".
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

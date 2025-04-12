@@ -1,0 +1,220 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="fas fa-chart-bar me-2"></i>Notification Reports
+        </h1>
+        <p class="lead text-muted">Analytics and insights from your filtered notifications</p>
+    </div>
+</div>
+
+<!-- Summary Cards Row -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 bg-success bg-opacity-25 shadow h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-star fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title">Important Notifications</h5>
+                        <h3 class="card-text">{{ important_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 bg-info bg-opacity-25 shadow h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-list fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title">Normal Notifications</h5>
+                        <h3 class="card-text">{{ normal_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 bg-primary bg-opacity-25 shadow h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-percentage fa-2x text-primary"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title">Important Ratio</h5>
+                        <h3 class="card-text">
+                            {% if important_count + normal_count > 0 %}
+                                {{ (important_count / (important_count + normal_count) * 100) | round }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Types Chart -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Notification Types
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height:300px;">
+                    <canvas id="notificationTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Type Breakdown -->
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-info bg-opacity-25">
+                <h4 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Type Breakdown
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                {% if type_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Notification Type</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                                <th>Distribution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total = type_data.values() | sum %}
+                            {% for type, count in type_data.items() %}
+                            <tr>
+                                <td>
+                                    <span class="badge rounded-pill bg-secondary">{{ type }}</span>
+                                </td>
+                                <td>{{ count }}</td>
+                                <td>
+                                    {% if total > 0 %}
+                                        {{ (count / total * 100) | round }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                                <td style="width: 40%;">
+                                    <div class="progress">
+                                        <div class="progress-bar 
+                                            {% if type in ['message', 'mention', 'comment', 'tag'] %}
+                                                bg-success
+                                            {% elif type in ['friend_request', 'group_invite', 'event_invite'] %}
+                                                bg-warning
+                                            {% else %}
+                                                bg-info
+                                            {% endif %}" 
+                                            role="progressbar" 
+                                            style="width: {{ (count / total * 100) if total > 0 else 0 }}%"
+                                            aria-valuenow="{{ count }}" 
+                                            aria-valuemin="0" 
+                                            aria-valuemax="{{ total }}">
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <p class="text-muted mb-0">No notification data available yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js for Visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Only create the chart if we have data and the canvas element exists
+    if (document.getElementById('notificationTypesChart')) {
+        // Extract data from server-side data
+        const typeData = {{ type_data | tojson }};
+        
+        if (Object.keys(typeData).length > 0) {
+            const labels = Object.keys(typeData);
+            const counts = Object.values(typeData);
+            
+            // Generate colors for each type
+            const backgroundColors = labels.map(type => {
+                if (['message', 'mention', 'comment', 'tag'].includes(type)) {
+                    return 'rgba(40, 167, 69, 0.7)'; // success
+                } else if (['friend_request', 'group_invite', 'event_invite'].includes(type)) {
+                    return 'rgba(255, 193, 7, 0.7)'; // warning
+                } else {
+                    return 'rgba(23, 162, 184, 0.7)'; // info
+                }
+            });
+            
+            const ctx = document.getElementById('notificationTypesChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'rgba(255, 255, 255, 0.7)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#e9ecef',
+                                padding: 10
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

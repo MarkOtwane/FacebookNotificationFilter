@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="fas fa-filter fa-3x text-primary mb-3"></i>
+                    <h2>Facebook Notification Filter</h2>
+                    <p class="text-muted">Keep your notifications organized and stay productive</p>
+                </div>
+
+                <!-- Login/Register Form Tabs -->
+                <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not register %}active{% endif %}" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-form" type="button" role="tab" aria-controls="login-form" aria-selected="{% if not register %}true{% else %}false{% endif %}">Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if register %}active{% endif %}" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-form" type="button" role="tab" aria-controls="register-form" aria-selected="{% if register %}true{% else %}false{% endif %}">Register</button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="authTabsContent">
+                    <!-- Login Form -->
+                    <div class="tab-pane fade {% if not register %}show active{% endif %}" id="login-form" role="tabpanel" aria-labelledby="login-tab">
+                        <form method="post" action="{{ url_for('login') }}">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                <label class="form-check-label" for="remember">Remember me</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Log In</button>
+                        </form>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div class="tab-pane fade {% if register %}show active{% endif %}" id="register-form" role="tabpanel" aria-labelledby="register-tab">
+                        <form method="post" action="{{ url_for('register') }}">
+                            <div class="mb-3">
+                                <label for="reg-username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="reg-username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reg-email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="reg-email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reg-password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="reg-password" name="password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reg-password-confirm" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="reg-password-confirm" name="password_confirm" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Highlight -->
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card mb-3 h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-filter fa-2x text-primary mb-3"></i>
+                        <h5>Custom Filters</h5>
+                        <p class="text-muted">Create custom rules to automatically organize your notifications.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-3 h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-chart-line fa-2x text-primary mb-3"></i>
+                        <h5>Analytics</h5>
+                        <p class="text-muted">Visualize your notification patterns and optimize your social media presence.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-3 h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-clock fa-2x text-primary mb-3"></i>
+                        <h5>Save Time</h5>
+                        <p class="text-muted">Focus on what matters most and avoid social media distractions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
